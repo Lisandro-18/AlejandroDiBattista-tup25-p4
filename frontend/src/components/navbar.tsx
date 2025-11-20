@@ -1,40 +1,78 @@
 "use client";
 
 import Link from "next/link";
-import { useCart } from "../context/CartContext";
+import { useRouter } from "next/navigation";
+import { useUserStore } from "@/store/useUserStore";
+import { useCarritoStore } from "@/store/useCarritoStore";
 
 export default function Navbar() {
-  const { cart } = useCart();
-  const totalItems = Array.isArray(cart)
-    ? cart.reduce((acc, i) => acc + i.cantidad, 0)
-    : 0;
+  const router = useRouter();
+  const { usuario, logout } = useUserStore();
+  const { vaciarCarrito } = useCarritoStore();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.location.href = "/login";
+    vaciarCarrito(usuario?.id || 0); // limpia carrito
+    logout(); // limpia usuario + token
+    router.push("/login"); // vuelve al login
   };
 
   return (
-    <nav className="bg-blue-700 text-white p-4 flex justify-between items-center shadow-md">
-      <div className="flex gap-4">
-        <Link href="/" className="hover:underline">
-          🏠 Inicio
-        </Link>
-        <Link href="/carrito" className="hover:underline">
-          🛒 Carrito ({totalItems})
-        </Link>
-      </div>
+    <nav
+      style={{
+        width: "100%",
+        padding: "10px 20px",
+        background: "#333",
+        color: "white",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20,
+      }}
+    >
+      {/* LOGO */}
+      <Link
+        href="/"
+        style={{ color: "white", textDecoration: "none", fontSize: 20 }}
+      >
+        🛒 Tienda Online
+      </Link>
 
-      <div className="flex gap-4">
-        <Link href="/login" className="hover:underline">
-          🔑 Login
+      <div style={{ display: "flex", gap: 20, alignItems: "center" }}>
+        {/* CARRITO */}
+        <Link
+          href="/carrito"
+          style={{ color: "white", textDecoration: "none", fontSize: 16 }}
+        >
+          Carrito
         </Link>
-        <Link href="/registro" className="hover:underline">
-          📝 Registro
-        </Link>
-        <button onClick={handleLogout} className="hover:underline text-red-200">
-          🚪 Logout
-        </button>
+
+        {/* USUARIO LOGUEADO */}
+        {usuario ? (
+          <>
+            <span style={{ fontSize: 16 }}>
+              Hola, {usuario.nombre || usuario.email}
+            </span>
+
+            <button
+              onClick={handleLogout}
+              style={{
+                background: "red",
+                color: "white",
+                padding: "6px 12px",
+                borderRadius: 6,
+                border: "none",
+                cursor: "pointer",
+                fontSize: 14,
+              }}
+            >
+              Cerrar Sesión
+            </button>
+          </>
+        ) : (
+          <Link href="/login" style={{ color: "white" }}>
+            Iniciar Sesión
+          </Link>
+        )}
       </div>
     </nav>
   );
